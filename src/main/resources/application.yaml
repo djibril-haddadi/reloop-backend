@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: reloop-enterprise-api
+
+  datasource:
+    # localhost car ton code tourne sur le Mac, le port 5432 est ouvert par Docker
+    url: jdbc:postgresql://localhost:5432/reloop_dpp
+    username: reloop_dev
+    password: reloop_secure_pass_2025
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        # PostgreSQL + Hibernate Spatial 6 enregistre le support PostGIS automatiquement
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html # L'URL d'accès simplifiée
+    operations-sorter: method # Trie les endpoints par type (GET, POST...)
+  api-docs:
+    path: /v3/api-docs # Le JSON brut de la doc
