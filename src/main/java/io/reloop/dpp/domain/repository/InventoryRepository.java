@@ -6,9 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
+
+    Optional<Inventory> findByCompany_IdAndComponent_Reference(UUID companyId, String componentReference);
 
     // "Trouve-moi qui a cette pièce en stock (qty > 0) autour de moi"
     @Query(value = """
