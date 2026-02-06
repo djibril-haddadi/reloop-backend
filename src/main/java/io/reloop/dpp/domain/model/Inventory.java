@@ -1,5 +1,6 @@
 package io.reloop.dpp.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,10 +13,12 @@ import lombok.*;
 @Builder
 public class Inventory extends BaseEntity {
 
+    @JsonIgnore // Empêche le crash sur le Magasin
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
+    @JsonIgnore // Empêche le crash sur le Composant
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "component_id", nullable = false)
     private Component component;
