@@ -33,23 +33,31 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<StockResultDto> findStockNearby(String reference, double lat, double lon, double radiusKm) {
-        double radiusMeters = radiusKm * 1000;
+    public List<StockResultDto> findStockNearby(String ref, double lat, double lon, double radius) {
 
-        List<Inventory> results = inventoryRepository.findStockNearby(reference, lat, lon, radiusMeters);
+        // 🧠 LOGIQUE JAVA (Plus fiable que SQL) :
+        String searchPattern;
+        if (ref == null || ref.trim().isEmpty()) {
+            searchPattern = "%"; // Le joker : "Je veux tout"
+        } else {
+            searchPattern = "%" + ref.trim() + "%"; // "Je veux ce qui contient ce mot"
+        }
 
-        // Conversion (Mapping) Inventory -> DTO
-        return results.stream()
+        // On appelle le repository avec le motif préparé
+        List<Inventory> inventories = inventoryRepository.findStockNearby(searchPattern, lat, lon, radius * 1000);
+
+        // Mapping DTO avec garde-fous null
+        return inventories.stream()
                 .map(inv -> new StockResultDto(
                         inv.getId(),
-                        inv.getComponent().getName(),
-                        inv.getComponent().getReference(),
-                        inv.getCompany().getName(),
-                        inv.getCompany().getAddress(),
-                        null, // price : pas encore sur Inventory
+                        inv.getComponent() != null ? inv.getComponent().getName() : "Inconnu",
+                        inv.getComponent() != null ? inv.getComponent().getReference() : "",
+                        inv.getCompany() != null ? inv.getCompany().getName() : "Vendeur Inconnu",
+                        null, // address optionnel
+                        50.0,
                         inv.getQuantity(),
-                        inv.getCompany().getLocation().getY(), // Latitude
-                        inv.getCompany().getLocation().getX()  // Longitude
+                        inv.getCompany() != null && inv.getCompany().getLocation() != null ? inv.getCompany().getLocation().getY() : 0.0,
+                        inv.getCompany() != null && inv.getCompany().getLocation() != null ? inv.getCompany().getLocation().getX() : 0.0
                 ))
                 .toList();
     }

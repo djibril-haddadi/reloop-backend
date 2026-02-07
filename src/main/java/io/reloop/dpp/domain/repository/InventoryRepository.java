@@ -15,6 +15,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
 
     Optional<Inventory> findByCompany_IdAndComponent_Reference(UUID companyId, String componentReference);
 
+    // ✅ REQUÊTE ULTRA-SIMPLIFIÉE :
+    // On a retiré toute la logique conditionnelle (OR IS NULL...).
+    // On attend juste un motif (ex: "%bb%" ou "%") et on compare.
     @Query(value = """
         SELECT i.* FROM inventories i
         JOIN companies c ON i.company_id = c.id
@@ -22,10 +25,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
         WHERE 
             i.quantity > 0
             AND (
-                :componentRef IS NULL 
-                OR :componentRef = '' 
-                OR comp.name ILIKE CONCAT('%', :componentRef, '%')
-                OR comp.reference ILIKE CONCAT('%', :componentRef, '%')
+                comp.name ILIKE :searchPattern
+                OR comp.reference ILIKE :searchPattern
             )
             AND ST_DWithin(
                 c.location::geography,
@@ -38,7 +39,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
         ) ASC
         """, nativeQuery = true)
     List<Inventory> findStockNearby(
-            @Param("componentRef") String componentRef,
+            @Param("searchPattern") String searchPattern, // On ne passe plus "ref", mais le motif complet
             @Param("lat") double latitude,
             @Param("lon") double longitude,
             @Param("radiusInMeters") double radiusInMeters
