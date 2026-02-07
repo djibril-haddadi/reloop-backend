@@ -31,7 +31,7 @@ public class InventoryController {
     }
 
     // Ce code permet à l'app d'envoyer un ordre "Ajoute +500g"
-    @PostMapping("/add")
+    @PostMapping("/add-quantity")
     public ResponseEntity<Inventory> addStock(
             @RequestParam String storeId,
             @RequestParam String materialRef,
@@ -39,5 +39,25 @@ public class InventoryController {
 
         Inventory stock = inventoryService.addStock(storeId, materialRef, quantityToAdd);
         return ResponseEntity.ok(stock);
+    }
+
+    // Endpoint pour ajouter une pièce au stock
+    @PostMapping("/add")
+    public ResponseEntity<Inventory> addInventory(@RequestBody CreateInventoryRequest request) {
+        // C'est ici qu'on appellerait le Service pour sauver en base
+        // Pour l'instant, on va juste logger pour voir si ça marche
+        System.out.println("📦 Ajout de stock reçu : " + request.productName + " (" + request.condition + ")");
+
+        // On renvoie un succès vide pour le test
+        return ResponseEntity.ok().build();
+    }
+
+    // Petite classe (DTO) pour transporter les infos du mobile vers le serveur
+    public static class CreateInventoryRequest {
+        public String productName;
+        public String condition; // "NEUF" ou "OCCASION"
+        public double price;
+        public double lat;
+        public double lon;
     }
 }
