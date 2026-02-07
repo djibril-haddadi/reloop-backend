@@ -29,15 +29,21 @@ public class InventoryController {
     private final CompanyRepository companyRepository;
     private final ComponentRepository componentRepository;
 
-    // GET /api/v1/parts/search
     @GetMapping("/search")
     public List<StockResultDto> findPartNearby(
-            @RequestParam(required = false) String ref,
+            @RequestParam(required = false) String ref, // Le mot clé (ex: "bb")
             @RequestParam double lat,
             @RequestParam double lon,
             @RequestParam(defaultValue = "50") double radius) {
 
-        if (ref == null) ref = "";
+        // 🔍 LE MOUCHARD : On affiche ce qu'on reçoit
+        if (ref == null || ref.trim().isEmpty()) {
+            System.out.println("🔍 Recherche : (VIDE) -> Je renvoie tout.");
+            ref = ""; // On s'assure que c'est une chaine vide, pas null
+        } else {
+            System.out.println("🔍 Recherche : [" + ref + "] -> Je filtre !");
+        }
+
         return inventoryService.findStockNearby(ref, lat, lon, radius);
     }
 
