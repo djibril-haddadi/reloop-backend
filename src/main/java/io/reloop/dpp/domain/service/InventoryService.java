@@ -41,8 +41,12 @@ public class InventoryService {
         // Conversion (Mapping) Inventory -> DTO
         return results.stream()
                 .map(inv -> new StockResultDto(
+                        inv.getId(),
+                        inv.getComponent().getName(),
+                        inv.getComponent().getReference(),
                         inv.getCompany().getName(),
                         inv.getCompany().getAddress(),
+                        null, // price : pas encore sur Inventory
                         inv.getQuantity(),
                         inv.getCompany().getLocation().getY(), // Latitude
                         inv.getCompany().getLocation().getX()  // Longitude
