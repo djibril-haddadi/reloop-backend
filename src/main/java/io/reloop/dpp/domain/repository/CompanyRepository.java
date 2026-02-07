@@ -7,10 +7,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
+
+    // ✅ AJOUT : Pour trouver le vendeur par défaut (Casse Auto Lille)
+    @Query(value = "SELECT * FROM companies LIMIT 1", nativeQuery = true)
+    Optional<Company> findFirstCompany();
 
     // La requête magique : Trouve tout ce qui est dans un rayon de X mètres
     @Query(value = """
