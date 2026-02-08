@@ -58,31 +58,34 @@ public class InventoryController {
         return ResponseEntity.ok(stock);
     }
 
-    // ✅ MODIFICATION : La vraie sauvegarde
     @PostMapping("/add")
     public ResponseEntity<Inventory> addInventory(@RequestBody CreateInventoryRequest request) {
-        System.out.println("💾 Sauvegarde en cours pour : " + request.productName);
+        // Validation applicative : prix en centimes >= 0 (évite incohérences silencieuses)
+        int priceCents = (int) Math.round(request.price * 100);
+        if (priceCents < 0) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (request.productName == null || request.productName.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        // 1. On trouve le vendeur (le premier de la base, ex: Casse Auto Lille)
         Company seller = companyRepository.findFirstCompany()
                 .orElseThrow(() -> new RuntimeException("Aucune entreprise trouvée en base !"));
 
-        // 2. On crée l'objet (Component)
         Component newComponent = new Component();
         newComponent.setName(request.productName);
-        newComponent.setReference("REF-" + System.currentTimeMillis()); // Réf unique auto-générée
-        newComponent = componentRepository.save(newComponent); // Sauvegarde table components
+        newComponent.setReference("REF-" + System.currentTimeMillis());
+        newComponent = componentRepository.save(newComponent);
 
-        // 3. On crée le lien de Stock (Inventory)
+        int quantity = 1;
         Inventory newStock = new Inventory();
         newStock.setCompany(seller);
         newStock.setComponent(newComponent);
-        newStock.setQuantity(1);
-        newStock.setPriceCents((int) Math.round(request.price * 100));
+        newStock.setQuantity(quantity);
+        newStock.setPriceCents(priceCents);
         newStock.setConditionCode(request.condition != null && !request.condition.isBlank() ? request.condition.toUpperCase() : "USED");
-        newStock.setAvailable(true);
+        newStock.setAvailable(quantity > 0); // cohérence : disponible ssi quantité > 0
 
-        // Sauvegarde finale dans la table inventories
         Inventory savedStock = inventoryRepository.save(newStock);
 
         System.out.println("✅ Succès ! Stock créé avec l'ID : " + savedStock.getId());

@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "reservations")
+@Table(name = "reservations", indexes = {
+    @Index(name = "idx_reservations_company_status_created", columnList = "company_id, status, created_at")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,6 +18,11 @@ public class Reservation extends BaseEntity {
     @Column(nullable = false, length = 32)
     private ReservationStatus status;
 
+    /** Ligne d'inventaire exacte (USED vs NEW + prix). Optionnel pour compat. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_id")
+    private Inventory inventory;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
@@ -23,6 +30,10 @@ public class Reservation extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "component_id", nullable = false)
     private Component component;
+
+    /** Condition au moment de la résa (ex: USED, NEW). Snapshot même si inventory_id est renseigné. */
+    @Column(name = "condition_code", length = 32)
+    private String conditionCode;
 
     @Column(nullable = false)
     private Integer quantity;

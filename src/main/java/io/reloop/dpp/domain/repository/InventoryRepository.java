@@ -24,7 +24,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
         JOIN components comp ON i.component_id = comp.id
         WHERE 
             i.quantity > 0
-            AND (i.available IS NULL OR i.available = true)
+            AND i.available = true
             AND (
                 comp.name ILIKE :searchPattern
                 OR comp.reference ILIKE :searchPattern

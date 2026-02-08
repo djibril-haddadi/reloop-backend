@@ -2,6 +2,11 @@ spring:
   application:
     name: reloop-enterprise-api
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
   datasource:
     # localhost car ton code tourne sur le Mac, le port 5432 est ouvert par Docker
     url: jdbc:postgresql://localhost:5432/reloop_dpp
@@ -13,6 +18,7 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
+      # update = dev local OK. Pour démo/incubateur/Railway : passer à "validate" et laisser Flyway gérer le schéma.
       ddl-auto: update
     properties:
       hibernate:

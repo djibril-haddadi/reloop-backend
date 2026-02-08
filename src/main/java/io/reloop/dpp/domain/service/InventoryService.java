@@ -28,7 +28,9 @@ public class InventoryService {
     @Transactional
     public Inventory addStock(String storeId, String materialRef, int quantityToAdd) {
         Inventory stock = findStock(storeId, materialRef);
-        stock.setQuantity(stock.getQuantity() + quantityToAdd);
+        int newQty = stock.getQuantity() + quantityToAdd;
+        stock.setQuantity(newQty);
+        stock.setAvailable(newQty > 0); // cohérence : disponible ssi quantité > 0
         return inventoryRepository.save(stock);
     }
 
@@ -53,7 +55,7 @@ public class InventoryService {
                         inv.getComponent() != null ? inv.getComponent().getReference() : "",
                         inv.getCompany() != null ? inv.getCompany().getName() : "Vendeur Inconnu",
                         null,
-                        inv.getPriceCents() != null ? inv.getPriceCents() / 100.0 : 50.0,
+                        inv.getPriceCents() != null ? inv.getPriceCents() / 100.0 : 0.0,
                         inv.getQuantity(),
                         inv.getCompany() != null && inv.getCompany().getLocation() != null ? inv.getCompany().getLocation().getY() : 0.0,
                         inv.getCompany() != null && inv.getCompany().getLocation() != null ? inv.getCompany().getLocation().getX() : 0.0
