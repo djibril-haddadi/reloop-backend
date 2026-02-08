@@ -57,6 +57,7 @@ public class ReservationService {
         return toDto(reservation);
     }
 
+    @Transactional(readOnly = true)
     public List<ReservationDto> findByCompany(UUID companyId, ReservationStatus statusFilter) {
         List<Reservation> list = statusFilter == null
                 ? reservationRepository.findByCompany_IdOrderByCreatedAtDesc(companyId)
