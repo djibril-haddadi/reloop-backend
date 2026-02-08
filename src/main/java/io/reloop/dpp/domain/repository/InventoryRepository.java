@@ -15,6 +15,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
 
     Optional<Inventory> findByCompany_IdAndComponent_Reference(UUID companyId, String componentReference);
 
+    List<Inventory> findByCompany_IdOrderByIdAsc(UUID companyId);
+
     // ✅ REQUÊTE ULTRA-SIMPLIFIÉE :
     // On a retiré toute la logique conditionnelle (OR IS NULL...).
     // On attend juste un motif (ex: "%bb%" ou "%") et on compare.

@@ -1,12 +1,15 @@
 package io.reloop.dpp.api.controller;
 
-import io.reloop.dpp.api.dto.CompanyDto; // Import du DTO
+import io.reloop.dpp.api.dto.CompanyDto;
+import io.reloop.dpp.api.dto.InventoryDto;
 import io.reloop.dpp.domain.model.Company;
 import io.reloop.dpp.domain.service.CompanyService;
+import io.reloop.dpp.domain.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/companies")
@@ -14,6 +17,7 @@ import java.util.List;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final InventoryService inventoryService;
 
     @GetMapping("/nearby")
     public List<CompanyDto> searchNearby(
@@ -49,5 +53,11 @@ public class CompanyController {
                 latitude,
                 longitude
         );
+    }
+
+    /** Liste des inventaires (stock) d'une entreprise — écran Mode Entreprise. */
+    @GetMapping("/{companyId}/inventories")
+    public List<InventoryDto> listInventories(@PathVariable UUID companyId) {
+        return inventoryService.listByCompany(companyId);
     }
 }

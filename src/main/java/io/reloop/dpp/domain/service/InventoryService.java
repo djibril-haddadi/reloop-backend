@@ -1,5 +1,6 @@
 package io.reloop.dpp.domain.service;
 
+import io.reloop.dpp.api.dto.InventoryDto;
 import io.reloop.dpp.api.dto.StockResultDto;
 import io.reloop.dpp.domain.model.Inventory;
 import io.reloop.dpp.domain.repository.InventoryRepository;
@@ -32,6 +33,31 @@ public class InventoryService {
         stock.setQuantity(newQty);
         stock.setAvailable(newQty > 0); // cohérence : disponible ssi quantité > 0
         return inventoryRepository.save(stock);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InventoryDto> listByCompany(UUID companyId) {
+        List<Inventory> list = inventoryRepository.findByCompany_IdOrderByIdAsc(companyId);
+        return list.stream().map(this::toInventoryDto).toList();
+    }
+
+    private InventoryDto toInventoryDto(Inventory inv) {
+        UUID companyId = inv.getCompany() != null ? inv.getCompany().getId() : null;
+        String componentName = inv.getComponent() != null ? inv.getComponent().getName() : "Inconnu";
+        int quantity = inv.getQuantity() != null ? inv.getQuantity() : 0;
+        int priceCents = inv.getPriceCents() != null ? inv.getPriceCents() : 0;
+        String conditionCode = inv.getConditionCode() != null ? inv.getConditionCode() : "USED";
+        boolean available = Boolean.TRUE.equals(inv.getAvailable());
+        return new InventoryDto(
+                inv.getId(),
+                companyId,
+                componentName,
+                quantity,
+                priceCents,
+                priceCents / 100.0,
+                conditionCode,
+                available
+        );
     }
 
     @Transactional(readOnly = true)
