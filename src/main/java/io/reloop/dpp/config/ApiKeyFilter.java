@@ -25,7 +25,7 @@ import java.util.UUID;
 public class ApiKeyFilter extends OncePerRequestFilter {
 
     private static final String HEADER_API_KEY = "X-API-KEY";
-    private static final String PATH_PREFIX = "/api/v1/company/me/";
+    private static final String PATH_PREFIX = "/api/v1/company/me";
 
     private final ApiKeyRepository apiKeyRepository;
     private final CompanyRepository companyRepository;
@@ -33,7 +33,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path == null || !path.startsWith(PATH_PREFIX);
+        return path == null || !(path.equals(PATH_PREFIX) || path.startsWith(PATH_PREFIX + "/"));
     }
 
     @Override
@@ -43,19 +43,21 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         try {
-            String apiKey = request.getHeader(HEADER_API_KEY);
             UUID companyId = null;
 
-            if (apiKey != null && !apiKey.isBlank()) {
-                String keyHash = hashSha256(apiKey.trim());
-                companyId = apiKeyRepository.findCompanyIdByKeyHashAndEnabledTrue(keyHash).orElse(null);
-            }
-
-            // Fallback : un seul magasin en base → on l'utilise (évite clé / mauvaise clé).
-            if (companyId == null && companyRepository.count() == 1) {
+            // Un seul magasin → on utilise toujours celui-là (la clé peut pointer ailleurs en prod).
+            if (companyRepository.count() == 1) {
                 companyId = companyRepository.findFirstCompany()
                         .map(Company::getId)
                         .orElse(null);
+            }
+
+            if (companyId == null) {
+                String apiKey = request.getHeader(HEADER_API_KEY);
+                if (apiKey != null && !apiKey.isBlank()) {
+                    String keyHash = hashSha256(apiKey.trim());
+                    companyId = apiKeyRepository.findCompanyIdByKeyHashAndEnabledTrue(keyHash).orElse(null);
+                }
             }
 
             if (companyId == null) {

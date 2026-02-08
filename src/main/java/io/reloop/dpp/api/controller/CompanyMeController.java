@@ -4,6 +4,7 @@ import io.reloop.dpp.api.dto.InventoryDto;
 import io.reloop.dpp.api.dto.ReservationDto;
 import io.reloop.dpp.config.CompanyContextHolder;
 import io.reloop.dpp.domain.model.ReservationStatus;
+import io.reloop.dpp.domain.repository.ReservationRepository;
 import io.reloop.dpp.domain.service.InventoryService;
 import io.reloop.dpp.domain.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +28,7 @@ public class CompanyMeController {
 
     private final ReservationService reservationService;
     private final InventoryService inventoryService;
+    private final ReservationRepository reservationRepository;
 
     private static UUID requireCompanyId() {
         UUID companyId = CompanyContextHolder.getCompanyId();
@@ -49,5 +51,18 @@ public class CompanyMeController {
     public List<InventoryDto> listMyInventories() {
         UUID companyId = requireCompanyId();
         return inventoryService.listByCompany(companyId);
+    }
+
+    /** Diagnostic : companyId utilisé + nombre de réservations (pour débug Mode Entreprise). */
+    @GetMapping("/info")
+    public java.util.Map<String, Object> myCompanyInfo() {
+        UUID companyId = requireCompanyId();
+        long total = reservationRepository.countByCompany_Id(companyId);
+        long pending = reservationRepository.countByCompany_IdAndStatus(companyId, ReservationStatus.PENDING);
+        return java.util.Map.of(
+                "companyId", companyId.toString(),
+                "reservationCount", total,
+                "pendingCount", pending
+        );
     }
 }
