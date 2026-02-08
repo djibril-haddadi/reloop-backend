@@ -27,6 +27,12 @@ public class ReservationService {
      */
     @Transactional
     public ReservationDto create(CreateReservationRequest request) {
+        if (reservationRepository.existsByInventory_IdAndCustomerEmailIgnoreCaseAndStatus(
+                request.getInventoryId(), request.getCustomerEmail(), ReservationStatus.PENDING)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Une réservation PENDING existe déjà pour ce stock et cet email.");
+        }
+
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inventory not found: " + request.getInventoryId()));
 
