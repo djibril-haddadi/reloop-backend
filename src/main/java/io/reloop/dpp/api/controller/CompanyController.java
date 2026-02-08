@@ -3,6 +3,7 @@ package io.reloop.dpp.api.controller;
 import io.reloop.dpp.api.dto.CompanyDto;
 import io.reloop.dpp.api.dto.InventoryDto;
 import io.reloop.dpp.domain.model.Company;
+import io.reloop.dpp.domain.service.ApiKeyService;
 import io.reloop.dpp.domain.service.CompanyService;
 import io.reloop.dpp.domain.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class CompanyController {
 
     private final CompanyService companyService;
     private final InventoryService inventoryService;
+    private final ApiKeyService apiKeyService;
 
     @GetMapping("/nearby")
     public List<CompanyDto> searchNearby(
@@ -59,5 +61,12 @@ public class CompanyController {
     @GetMapping("/{companyId}/inventories")
     public List<InventoryDto> listInventories(@PathVariable UUID companyId) {
         return inventoryService.listByCompany(companyId);
+    }
+
+    /** Crée une clé API pour l'entreprise ; retourne la clé en clair (à sauvegarder, non réaffichée). */
+    @PostMapping("/{companyId}/api-keys")
+    public java.util.Map<String, String> createApiKey(@PathVariable UUID companyId) {
+        String plainKey = apiKeyService.createKeyForCompany(companyId);
+        return java.util.Map.of("apiKey", plainKey);
     }
 }

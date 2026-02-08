@@ -1,10 +1,12 @@
 package io.reloop.dpp.config;
 
+import io.reloop.dpp.domain.repository.ApiKeyRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -15,16 +17,19 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public ApiKeyFilter apiKeyFilter(ApiKeyRepository apiKeyRepository) {
+        return new ApiKeyFilter(apiKeyRepository);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ApiKeyFilter apiKeyFilter) throws Exception {
         http
-            // 1. On active le CORS (pour que le mobile/web puisse discuter)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // 2. On désactive le CSRF (inutile pour les API REST)
             .csrf(csrf -> csrf.disable())
-            // 3. On autorise tout le monde sur /api/v1/**
+            .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/**").permitAll() // <-- C'est LA ligne importante
-                .anyRequest().permitAll() // Soyons fous : on ouvre tout pour le test
+                .requestMatchers("/api/v1/**").permitAll()
+                .anyRequest().permitAll()
             );
 
         return http.build();
