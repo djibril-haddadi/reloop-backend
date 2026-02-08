@@ -5,6 +5,7 @@ import io.reloop.dpp.api.dto.ReservationDto;
 import io.reloop.dpp.api.dto.UpdateReservationStatusRequest;
 import io.reloop.dpp.domain.model.ReservationStatus;
 import io.reloop.dpp.domain.service.ReservationService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,10 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    /** Client : crée une réservation (inventoryId, quantité, client). Stock décrémenté, statut PENDING. */
+    @Operation(
+    summary = "Créer une réservation",
+    description = "Request body JSON obligatoire. 400 si body manquant/mal formé ou champs invalides. Exemple : inventoryId (UUID), quantity (≥1), customerName, customerEmail. Stock décrémenté, statut PENDING."
+)
     @PostMapping("/reservations")
     public ResponseEntity<ReservationDto> create(@Valid @RequestBody CreateReservationRequest request) {
         ReservationDto created = reservationService.create(request);
