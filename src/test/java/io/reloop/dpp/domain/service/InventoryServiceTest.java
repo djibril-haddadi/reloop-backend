@@ -44,11 +44,14 @@ class InventoryServiceTest {
                 .location(parisLocation)
                 .build();
 
-        // On prépare un faux stock
+        Component fakeComponent = Component.builder().name("Test Part").reference("REF-123").build();
         Inventory fakeInventory = Inventory.builder()
                 .company(fakeCompany)
-                .component(Component.builder().name("Test Part").build())
+                .component(fakeComponent)
                 .quantity(10)
+                .priceCents(5000)
+                .conditionCode("USED")
+                .available(true)
                 .build();
 
         // On DRESSE la doublure : "Si on t'appelle, réponds ça !"
@@ -61,9 +64,13 @@ class InventoryServiceTest {
 
         // 3. ASSERT (Vérification)
         // On vérifie que le service a bien fait son travail de conversion
-        assertEquals(1, results.size()); // On doit avoir 1 résultat
-        assertEquals("Test Shop", results.get(0).companyName()); // Le nom doit correspondre
-        assertEquals(10, results.get(0).stockQuantity()); // La quantité aussi
-        assertEquals(48.8566, results.get(0).latitude()); // La latitude a bien été extraite du Point
+        assertEquals(1, results.size());
+        assertEquals("Test Shop", results.get(0).companyName());
+        assertEquals("Test Part", results.get(0).componentName());
+        assertEquals(10, results.get(0).quantity());
+        assertEquals(48.8566, results.get(0).latitude());
+        assertEquals(50.0, results.get(0).price());
+        assertEquals("USED", results.get(0).conditionCode());
+        assertEquals(true, results.get(0).available());
     }
 }

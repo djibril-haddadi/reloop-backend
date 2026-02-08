@@ -2,14 +2,20 @@ package io.reloop.dpp.api.dto;
 
 import java.util.UUID;
 
+/**
+ * Un item de stock retourné par GET /api/v1/parts/search (pour réserver, afficher liste).
+ */
 public record StockResultDto(
-        UUID id,                 // ✅ AJOUTÉ : Pour identifier la pièce
-        String productName,      // ✅ AJOUTÉ : C'est lui qu'il nous manquait ! ("bb")
-        String reference,        // ✅ AJOUTÉ : "REF-1234"
+        UUID inventoryId,
+        String componentName,
+        String componentRef,
+        UUID companyId,
         String companyName,
-        String address,
-        Double price,            // ✅ AJOUTÉ : 50.0
-        Integer stockQuantity,
-        Double latitude,
+        double distanceKm,
+        double price,
+        String conditionCode,
+        int quantity,
+        boolean available,
+        Double latitude,   // position vendeur (carte)
         Double longitude
 ) {}
