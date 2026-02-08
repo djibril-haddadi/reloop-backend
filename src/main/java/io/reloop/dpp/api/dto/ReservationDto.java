@@ -10,13 +10,11 @@ public record ReservationDto(
         ReservationStatus status,
         UUID inventoryId,
         UUID companyId,
-        String companyName,
         String componentName,
         int quantity,
         String customerName,
         String customerEmail,
         int reservedPriceCents,
-        double reservedPriceEuro,
         String conditionCode,
         Instant createdAt
 ) {}

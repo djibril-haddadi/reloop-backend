@@ -14,10 +14,4 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     List<Reservation> findByCompany_IdOrderByCreatedAtDesc(UUID companyId);
 
     List<Reservation> findByCompany_IdAndStatusOrderByCreatedAtDesc(UUID companyId, ReservationStatus status);
-
-    boolean existsByInventory_IdAndCustomerEmailIgnoreCaseAndStatus(UUID inventoryId, String customerEmail, ReservationStatus status);
-
-    List<Reservation> findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(String customerEmail);
-
-    List<Reservation> findByCustomerEmailIgnoreCaseAndStatusOrderByCreatedAtDesc(String customerEmail, ReservationStatus status);
 }

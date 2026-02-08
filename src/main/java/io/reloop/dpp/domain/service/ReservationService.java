@@ -27,12 +27,6 @@ public class ReservationService {
      */
     @Transactional
     public ReservationDto create(CreateReservationRequest request) {
-        if (reservationRepository.existsByInventory_IdAndCustomerEmailIgnoreCaseAndStatus(
-                request.getInventoryId(), request.getCustomerEmail(), ReservationStatus.PENDING)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Une réservation PENDING existe déjà pour ce stock et cet email.");
-        }
-
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inventory not found: " + request.getInventoryId()));
 
@@ -71,17 +65,6 @@ public class ReservationService {
         return list.stream().map(this::toDto).toList();
     }
 
-    @Transactional(readOnly = true)
-    public List<ReservationDto> findByCustomerEmail(String customerEmail, ReservationStatus statusFilter) {
-        if (customerEmail == null || customerEmail.isBlank()) {
-            return List.of();
-        }
-        List<Reservation> list = statusFilter == null
-                ? reservationRepository.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(customerEmail.trim())
-                : reservationRepository.findByCustomerEmailIgnoreCaseAndStatusOrderByCreatedAtDesc(customerEmail.trim(), statusFilter);
-        return list.stream().map(this::toDto).toList();
-    }
-
     @Transactional
     public ReservationDto updateStatus(UUID id, UpdateReservationStatusRequest request) {
         Reservation reservation = reservationRepository.findById(id)
@@ -92,19 +75,16 @@ public class ReservationService {
     }
 
     private ReservationDto toDto(Reservation r) {
-        int cents = r.getReservedPriceCents() != null ? r.getReservedPriceCents() : 0;
         return new ReservationDto(
                 r.getId(),
                 r.getStatus(),
                 r.getInventory() != null ? r.getInventory().getId() : null,
                 r.getCompany() != null ? r.getCompany().getId() : null,
-                r.getCompany() != null ? r.getCompany().getName() : "",
                 r.getComponent() != null ? r.getComponent().getName() : "",
                 r.getQuantity() != null ? r.getQuantity() : 0,
                 r.getCustomerName(),
                 r.getCustomerEmail(),
-                cents,
-                cents / 100.0,
+                r.getReservedPriceCents() != null ? r.getReservedPriceCents() : 0,
                 r.getConditionCode() != null ? r.getConditionCode() : "USED",
                 r.getCreatedAt()
         );
