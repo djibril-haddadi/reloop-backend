@@ -1,6 +1,7 @@
 package io.reloop.dpp.config;
 
 import io.reloop.dpp.domain.repository.ApiKeyRepository;
+import io.reloop.dpp.domain.repository.CompanyRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,8 +18,8 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public ApiKeyFilter apiKeyFilter(ApiKeyRepository apiKeyRepository) {
-        return new ApiKeyFilter(apiKeyRepository);
+    public ApiKeyFilter apiKeyFilter(ApiKeyRepository apiKeyRepository, CompanyRepository companyRepository) {
+        return new ApiKeyFilter(apiKeyRepository, companyRepository);
     }
 
     @Bean
