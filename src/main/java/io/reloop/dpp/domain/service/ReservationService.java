@@ -71,6 +71,18 @@ public class ReservationService {
         return list.stream().map(this::toDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ReservationDto> findByCustomerEmail(String customerEmail, ReservationStatus statusFilter) {
+        if (customerEmail == null || customerEmail.isBlank()) {
+            return List.of();
+        }
+        String email = customerEmail.trim();
+        List<Reservation> list = statusFilter == null
+                ? reservationRepository.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(email)
+                : reservationRepository.findByCustomerEmailIgnoreCaseAndStatusOrderByCreatedAtDesc(email, statusFilter);
+        return list.stream().map(this::toDto).toList();
+    }
+
     @Transactional
     public ReservationDto updateStatus(UUID id, UpdateReservationStatusRequest request) {
         Reservation reservation = reservationRepository.findById(id)

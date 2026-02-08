@@ -17,4 +17,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
 
     /** Un seul PENDING par (inventory, email) : utilisé pour refuser les doublons en logique service. */
     boolean existsByInventory_IdAndCustomerEmailIgnoreCaseAndStatus(UUID inventoryId, String customerEmail, ReservationStatus status);
+
+    List<Reservation> findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(String customerEmail);
+
+    List<Reservation> findByCustomerEmailIgnoreCaseAndStatusOrderByCreatedAtDesc(String customerEmail, ReservationStatus status);
 }

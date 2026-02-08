@@ -34,6 +34,15 @@ public class ReservationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    /** Client : mes réservations (par email). Filtre optionnel par statut. Pour l'écran « Mes commandes ». */
+    @Operation(summary = "Mes réservations", description = "Liste les réservations du client (customerEmail obligatoire). Option : status pour filtrer.")
+    @GetMapping("/reservations")
+    public List<ReservationDto> listByCustomerEmail(
+            @RequestParam String customerEmail,
+            @RequestParam(required = false) ReservationStatus status) {
+        return reservationService.findByCustomerEmail(customerEmail, status);
+    }
+
     /** Entreprise : liste les réservations du vendeur, filtre optionnel par statut. */
     @GetMapping("/companies/{companyId}/reservations")
     public List<ReservationDto> listByCompany(
