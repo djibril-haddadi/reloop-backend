@@ -27,6 +27,12 @@ public class ReservationService {
      */
     @Transactional
     public ReservationDto create(CreateReservationRequest request) {
+        if (reservationRepository.existsByInventory_IdAndCustomerEmailIgnoreCaseAndStatus(
+                request.getInventoryId(), request.getCustomerEmail(), ReservationStatus.PENDING)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Une réservation PENDING existe déjà pour ce stock et cet email.");
+        }
+
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inventory not found: " + request.getInventoryId()));
 
@@ -86,16 +92,19 @@ public class ReservationService {
     }
 
     private ReservationDto toDto(Reservation r) {
+        int cents = r.getReservedPriceCents() != null ? r.getReservedPriceCents() : 0;
         return new ReservationDto(
                 r.getId(),
                 r.getStatus(),
                 r.getInventory() != null ? r.getInventory().getId() : null,
                 r.getCompany() != null ? r.getCompany().getId() : null,
+                r.getCompany() != null ? r.getCompany().getName() : "",
                 r.getComponent() != null ? r.getComponent().getName() : "",
                 r.getQuantity() != null ? r.getQuantity() : 0,
                 r.getCustomerName(),
                 r.getCustomerEmail(),
-                r.getReservedPriceCents() != null ? r.getReservedPriceCents() : 0,
+                cents,
+                cents / 100.0,
                 r.getConditionCode() != null ? r.getConditionCode() : "USED",
                 r.getCreatedAt()
         );
