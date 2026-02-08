@@ -78,7 +78,9 @@ public class InventoryController {
         newStock.setCompany(seller);
         newStock.setComponent(newComponent);
         newStock.setQuantity(1);
-        // newStock.setPrice(request.price); // Si tu as un champ prix dans Inventory, décommente ça
+        newStock.setPriceCents((int) Math.round(request.price * 100));
+        newStock.setConditionCode(request.condition != null && !request.condition.isBlank() ? request.condition.toUpperCase() : "USED");
+        newStock.setAvailable(true);
 
         // Sauvegarde finale dans la table inventories
         Inventory savedStock = inventoryRepository.save(newStock);

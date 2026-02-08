@@ -24,6 +24,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
         JOIN components comp ON i.component_id = comp.id
         WHERE 
             i.quantity > 0
+            AND (i.available IS NULL OR i.available = true)
             AND (
                 comp.name ILIKE :searchPattern
                 OR comp.reference ILIKE :searchPattern
@@ -39,7 +40,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
         ) ASC
         """, nativeQuery = true)
     List<Inventory> findStockNearby(
-            @Param("searchPattern") String searchPattern, // On ne passe plus "ref", mais le motif complet
+            @Param("searchPattern") String searchPattern,
             @Param("lat") double latitude,
             @Param("lon") double longitude,
             @Param("radiusInMeters") double radiusInMeters

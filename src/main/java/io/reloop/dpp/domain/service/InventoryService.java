@@ -43,7 +43,6 @@ public class InventoryService {
             searchPattern = "%" + ref.trim() + "%"; // "Je veux ce qui contient ce mot"
         }
 
-        // On appelle le repository avec le motif préparé
         List<Inventory> inventories = inventoryRepository.findStockNearby(searchPattern, lat, lon, radius * 1000);
 
         // Mapping DTO avec garde-fous null
@@ -53,8 +52,8 @@ public class InventoryService {
                         inv.getComponent() != null ? inv.getComponent().getName() : "Inconnu",
                         inv.getComponent() != null ? inv.getComponent().getReference() : "",
                         inv.getCompany() != null ? inv.getCompany().getName() : "Vendeur Inconnu",
-                        null, // address optionnel
-                        50.0,
+                        null,
+                        inv.getPriceCents() != null ? inv.getPriceCents() / 100.0 : 50.0,
                         inv.getQuantity(),
                         inv.getCompany() != null && inv.getCompany().getLocation() != null ? inv.getCompany().getLocation().getY() : 0.0,
                         inv.getCompany() != null && inv.getCompany().getLocation() != null ? inv.getCompany().getLocation().getX() : 0.0
