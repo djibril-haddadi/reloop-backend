@@ -33,6 +33,11 @@ public class ReservationService {
                     "Une réservation PENDING existe déjà pour ce stock et cet email.");
         }
 
+        int requestedQty = request.getQuantity();
+        if (requestedQty <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La quantité doit être supérieure à 0.");
+        }
+
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inventory not found: " + request.getInventoryId()));
 
@@ -41,12 +46,12 @@ public class ReservationService {
         }
 
         int available = inventory.getQuantity() != null ? inventory.getQuantity() : 0;
-        if (available < request.getQuantity()) {
+        if (available < requestedQty) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Stock insuffisant: disponible=" + available + ", demandé=" + request.getQuantity());
+                    "Stock insuffisant: disponible=" + available + ", demandé=" + requestedQty);
         }
 
-        int newQty = available - request.getQuantity();
+        int newQty = available - requestedQty;
         inventory.setQuantity(newQty);
         inventory.setAvailable(newQty > 0);
         inventoryRepository.save(inventory);
@@ -57,7 +62,7 @@ public class ReservationService {
                 .company(inventory.getCompany())
                 .component(inventory.getComponent())
                 .conditionCode(inventory.getConditionCode())
-                .quantity(request.getQuantity())
+                .quantity(requestedQty)
                 .customerName(request.getCustomerName())
                 .customerEmail(request.getCustomerEmail())
                 .reservedPriceCents(inventory.getPriceCents() != null ? inventory.getPriceCents() : 0)
