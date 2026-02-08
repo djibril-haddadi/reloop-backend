@@ -36,6 +36,10 @@ public class ReservationService {
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inventory not found: " + request.getInventoryId()));
 
+        if (!Boolean.TRUE.equals(inventory.getAvailable())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Article non disponible à la vente.");
+        }
+
         int available = inventory.getQuantity() != null ? inventory.getQuantity() : 0;
         if (available < request.getQuantity()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -87,9 +91,44 @@ public class ReservationService {
     public ReservationDto updateStatus(UUID id, UpdateReservationStatusRequest request) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found: " + id));
-        reservation.setStatus(request.getStatus());
+
+        ReservationStatus from = reservation.getStatus();
+        ReservationStatus to = request.getStatus();
+
+        if (from == to) {
+            return toDto(reservation);
+        }
+
+        if (!isAllowedTransition(from, to)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Transition non autorisée: " + from + " → " + to);
+        }
+
+        if (to == ReservationStatus.CANCELED && from != ReservationStatus.CANCELED && from != ReservationStatus.PICKED_UP) {
+            Inventory inventory = reservation.getInventory();
+            if (inventory != null && reservation.getQuantity() != null) {
+                int currentQty = inventory.getQuantity() != null ? inventory.getQuantity() : 0;
+                int addBack = reservation.getQuantity();
+                int newQty = currentQty + addBack;
+                inventory.setQuantity(newQty);
+                inventory.setAvailable(newQty > 0);
+                inventoryRepository.save(inventory);
+            }
+        }
+
+        reservation.setStatus(to);
         reservation = reservationRepository.save(reservation);
         return toDto(reservation);
+    }
+
+    /** MVP : PENDING→CONFIRMED|CANCELED, CONFIRMED→READY|CANCELED, READY→PICKED_UP|CANCELED ; PICKED_UP/CANCELED = finaux. */
+    private boolean isAllowedTransition(ReservationStatus from, ReservationStatus to) {
+        return switch (from) {
+            case PENDING -> to == ReservationStatus.CONFIRMED || to == ReservationStatus.CANCELED;
+            case CONFIRMED -> to == ReservationStatus.READY || to == ReservationStatus.CANCELED;
+            case READY -> to == ReservationStatus.PICKED_UP || to == ReservationStatus.CANCELED;
+            case PICKED_UP, CANCELED -> false;
+        };
     }
 
     private ReservationDto toDto(Reservation r) {
