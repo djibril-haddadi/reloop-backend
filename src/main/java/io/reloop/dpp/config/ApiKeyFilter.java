@@ -43,21 +43,18 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         try {
+            // 1) X-API-KEY → companyId (table api_keys, migrée par V4 vers la bonne company).
+            String apiKey = request.getHeader(HEADER_API_KEY);
             UUID companyId = null;
-
-            // Un seul magasin → on utilise toujours celui-là (la clé peut pointer ailleurs en prod).
-            if (companyRepository.count() == 1) {
+            if (apiKey != null && !apiKey.isBlank()) {
+                String keyHash = hashSha256(apiKey.trim());
+                companyId = apiKeyRepository.findCompanyIdByKeyHashAndEnabledTrue(keyHash).orElse(null);
+            }
+            // 2) Fallback : un seul magasin en base → on l’utilise (dev sans clé).
+            if (companyId == null && companyRepository.count() == 1) {
                 companyId = companyRepository.findFirstCompany()
                         .map(Company::getId)
                         .orElse(null);
-            }
-
-            if (companyId == null) {
-                String apiKey = request.getHeader(HEADER_API_KEY);
-                if (apiKey != null && !apiKey.isBlank()) {
-                    String keyHash = hashSha256(apiKey.trim());
-                    companyId = apiKeyRepository.findCompanyIdByKeyHashAndEnabledTrue(keyHash).orElse(null);
-                }
             }
 
             if (companyId == null) {
